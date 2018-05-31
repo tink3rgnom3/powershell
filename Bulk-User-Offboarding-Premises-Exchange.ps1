@@ -22,6 +22,7 @@ ForEach ($UserToRemove in $Userlist){
         New-MailboxExportRequest –Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
         If ($FwdAddress -ne $Null){
             Set-Mailbox $Username -ForwardingAddress $FwdAddress
+            Write-Host "Forwarding to $FwdAddress
         }
     }
     Else{
@@ -36,8 +37,9 @@ ForEach ($UserToRemove in $Userlist){
     Write-host "Removing $UserToRemove from groups:"
     If ($JoinedGroups -ne $Null){
         ForEach($Group in $JoinedGroups){ 
+            $GroupStrName = $Group.name
             Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False 
-            Write-Host "$Group"
+            Write-Host "$GroupStrName"
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
