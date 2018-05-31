@@ -34,7 +34,7 @@ ForEach ($UserToRemove in $Userlist){
 
     #Get AD Groups and remove from all but Domain Users
     $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where {$_.Name -ne "Domain Users"}
-    Write-host "Removing $UserToRemove from groups:"
+    Write-host "Removing $Username from groups:"
     If ($JoinedGroups -ne $Null){
         ForEach($Group in $JoinedGroups){ 
             $GroupStrName = $Group.name
