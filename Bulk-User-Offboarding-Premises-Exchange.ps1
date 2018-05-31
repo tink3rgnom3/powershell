@@ -1,4 +1,4 @@
-$UserList = Import-Csv C:\Source\Scripts\Remove_Users.csv
+$UserList = Import-Csv .\Remove_Users.csv
 $Server = $env:COMPUTERNAME
 $PathTest = Test-Path \\$server\C$\PST
 
@@ -18,14 +18,20 @@ ForEach ($UserToRemove in $Userlist){
         Set-mailbox $Username -HiddenFromAddressListsEnabled:$True -Confirm:$False -ErrorAction SilentlyContinue
         New-MailboxExportRequest –Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
     }
+    Else{
+         Write-Host "Mailbox for $UserToRemove does not exist"
+    }
     Import-Module ActiveDirectory
-    $DisabledUserPath = Get-ADOrganizationalUnit -Filter {Name -eq "Disabled Accounts"} | %{$_.DistinguishedName}
+    $DisabledUserPath = Get-ADOrganizationalUnit -Filter {(Name -eq "Disabled Accounts") -or (Name -eq "Disabled Users")} | %{$_.DistinguishedName}
 
 
     #Get AD Groups and remove from all but Domain Users
     $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where {$_.Name -ne "Domain Users"}
+    Write-host "Removing $UserToRemove from groups:"
     If ($JoinedGroups -ne $Null){
-        ForEach($Group in $JoinedGroups){ Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False }
+        ForEach($Group in $JoinedGroups){ 
+            Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False 
+            Write-Host "$Group"
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
