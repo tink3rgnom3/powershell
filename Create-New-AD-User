@@ -28,17 +28,18 @@ ForEach($NewUser in $Userlist){
         Write-Host "User $Fullname already exists"
     }
 
-    $Clientmsdomain = "hospiceofthegoldenisles.onmicrosoft.com"
+    $Clientmsdomain = $NewUser.MSDomain
 
     $PrimarySMTP = "SMTP:"
     $SecondarySMTP = "smtp:"
 
     $UserFullName = $FirstName + $LastName
 
-    $UserMSEmail = "$Username@$msdomain"
+    $UserMSEmail = "$Username@$ClientMSDomain"
 
     $ProxyPrimary = $PrimarySMTP + $EmailAddr
     $ProxySecondary = $SecondarySMTP + $UserMSEmail
+
 
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxyPrimary"}
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxySecondary"}
