@@ -2,6 +2,7 @@ cd C:\Source\Scripts
 Import-Module ActiveDirectory
 
 $Userlist = Import-Csv .\Create-New-AD-User-List.csv
+
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
     $LastName = $NewUser.Lastname
@@ -12,12 +13,13 @@ ForEach($NewUser in $Userlist){
     $Principal = "$Username@$env:USERDNSDOMAIN"
     $Password = (ConvertTo-SecureString -String ($NewUser.Passwd) -AsPlainText -Force)
     $Path = $NewUser.Path
+    $Description = $NewUser.Description
+    $Department = $NewUser.Department
 
     #Check if user exists
     $UserExists = Get-ADUser -Filter {Name -eq $FullName} -ErrorAction SilentlyContinue
     If ($UserExists -eq $Null){
-        
-        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Enabled:$True
+        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Description $Description -Enabled:$True -Department $Department
         Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
         Write-Host "User $Username has been created"
         Get-ADUser $Username
@@ -25,4 +27,26 @@ ForEach($NewUser in $Userlist){
     Else{
         Write-Host "User $Fullname already exists"
     }
+
+    $Clientmsdomain = "hospiceofthegoldenisles.onmicrosoft.com"
+
+    $PrimarySMTP = "SMTP:"
+    $SecondarySMTP = "smtp:"
+
+    $UserFullName = $FirstName + $LastName
+
+    $UserMSEmail = "$Username@$msdomain"
+
+    $ProxyPrimary = $PrimarySMTP + $EmailAddr
+    $ProxySecondary = $SecondarySMTP + $UserMSEmail
+
+    Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxyPrimary"}
+    Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxySecondary"}
+
+    SetUserAttributes
+
+
+
 }
+
+.\AD_Sync.ps1
