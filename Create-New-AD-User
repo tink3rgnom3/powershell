@@ -1,0 +1,28 @@
+cd C:\Source\Scripts
+Import-Module ActiveDirectory
+
+$Userlist = Import-Csv .\Create-New-AD-User-List.csv
+ForEach($NewUser in $Userlist){
+    $FirstName = $NewUser.FirstName
+    $LastName = $NewUser.Lastname
+    $FullName = "$Firstname $LastName"
+    $UserName = $NewUser.Username
+    $EmailDomain = $NewUser.EmailDomain
+    $EmailAddr = "$Username@$EmailDomain"
+    $Principal = "$Username@$env:USERDNSDOMAIN"
+    $Password = (ConvertTo-SecureString -String ($NewUser.Passwd) -AsPlainText -Force)
+    $Path = $NewUser.Path
+
+    #Check if user exists
+    $UserExists = Get-ADUser -Filter {Name -eq $FullName} -ErrorAction SilentlyContinue
+    If ($UserExists -eq $Null){
+        
+        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Enabled:$True
+        Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
+        Write-Host "User $Username has been created"
+        Get-ADUser $Username
+    }
+    Else{
+        Write-Host "User $Fullname already exists"
+    }
+}
