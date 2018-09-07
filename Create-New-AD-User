@@ -44,10 +44,6 @@ ForEach($NewUser in $Userlist){
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxyPrimary"}
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxySecondary"}
 
-    SetUserAttributes
-
-
-
 }
 
 .\AD_Sync.ps1
