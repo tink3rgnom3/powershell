@@ -1,2 +1,2 @@
 EmailDomain,MSDomain,EmailFormat,Path
-hospice.me,hospiceofthegoldenisles.onmicrosoft.com,"$Firstname$LastName","OU=Brunswick,OU=Users,OU=Hospice of the Golden Isles,DC=hgibwk,DC=local"
+hospice.me,hospiceofthegoldenisles.onmicrosoft.com,FirstnameLastName,"OU=Brunswick,OU=Users,OU=Hospice of the Golden Isles,DC=hgibwk,DC=local"
