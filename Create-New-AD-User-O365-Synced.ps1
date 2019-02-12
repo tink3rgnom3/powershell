@@ -1,11 +1,11 @@
-﻿cd C:\Source\Scripts
+cd C:\Source\Scripts
 Import-Module ActiveDirectory
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
 $Parameters = Import-Csv .\Create-New-AD-User-O365-Synced-Params.csv
 $EmailDomain = $Parameters.EmailDomain
 $Path = $Parameters.Path
-$EmailUsername = $Parameters.EmailFormat
+$EmailConvention = $Parameters.EmailFormat
 $Clientmsdomain = $Parameters.MSDomain
 
 ForEach($NewUser in $Userlist){
@@ -20,10 +20,22 @@ ForEach($NewUser in $Userlist){
     $Description = $NewUser.Description
     $Department = $NewUser.Department
     $UserToCopy = $NewUser.UserToCopy
+    If($EmailConvention -eq "FirstNameLastName"){
+        $EmailUsername = $FirstName + $LastName
+    }
+    ElseIf($EmailConvention -eq "FirstNameLastInitial"){
+        $EmailUsername = $FirstName + $LastInitial
+    }
+    ElseIf($EmailConvention -eq "Firstname.LastName"){
+        $Emailusername = $FirstName + "." + $LastName
+    }
+    Else{
+        $EmailUsername = $FirstInitial + $LastName
+    }
     If($NewUser.EmailDomain -ne $Null){
         $EmailDomain = $NewUser.EmailDomain
     }
-    $EmailAddr = "$($EmailUsername)@$EmailDomain"
+    $EmailAddr = "$EmailUsername@$EmailDomain"
 
     
     #Check if user exists
@@ -36,6 +48,7 @@ ForEach($NewUser in $Userlist){
     }
     Else{
         Write-Host "User $Fullname already exists"
+        continue
     }
 
     $PrimarySMTP = "SMTP:"
