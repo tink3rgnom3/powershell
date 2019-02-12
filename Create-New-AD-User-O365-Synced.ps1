@@ -29,6 +29,9 @@ ForEach($NewUser in $Userlist){
     ElseIf($EmailConvention -eq "Firstname.LastName"){
         $Emailusername = $FirstName + "." + $LastName
     }
+    ElseIf($EmailConvention -eq "FirstName"){
+        $EmailUsername = $FirstName
+    }
     Else{
         $EmailUsername = $FirstInitial + $LastName
     }
