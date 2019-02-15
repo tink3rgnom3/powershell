@@ -68,6 +68,7 @@ ForEach($NewUser in $Userlist){
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxyPrimary"}
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxySecondary"}
     Get-AdUser -Identity $Username | Set-ADUser -Replace @{mail="$EmailAddr"}
+    Get-AdUser -Identity $Username | Set-ADUser -Replace @{title="$Description"}
 
         #Copy groups from another user
     If($UserToCopy -ne $Null){
@@ -77,6 +78,7 @@ ForEach($NewUser in $Userlist){
     If($SourceUser -ne $Null){
         $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where {$_.Name -ne "Domain Users"}
         ForEach($Group in $UserGroups){
+            $GroupName = $Group.name
             Add-ADGroupMember -Identity $Group -Members $Username -ErrorAction SilentlyContinue
             Write-Host "Copying user $Username to $Groupname"
             }
