@@ -1,6 +1,6 @@
 cd C:\Source\Scripts
 
-$Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-Log.log"
+$Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-Premises-Exchange-Log.log"
 Function LogWrite
 {
    Param ([string]$logstring)
@@ -16,6 +16,7 @@ $Server = $env:COMPUTERNAME
 $PathTest = Test-Path \\$server\C$\PST
 $MailServer = $Parameters.Mailserver
 $DisabledUserPath = $Parameters.DisabledUserPath
+$LocalDomain = $env:USERDNSDOMAIN
 
 Import-Module ActiveDirectory
 $ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
@@ -47,12 +48,13 @@ ForEach ($UserToRemove in $Userlist){
     }
 
     #Get AD Groups and remove from all but Domain Users
-    LogWrite "Removing user from groups:"
+    LogWrite "Removing user $Username from groups:"
     $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where {$_.Name -ne "Domain Users"}
     If ($JoinedGroups -ne $Null){
-        ForEach($Group in $JoinedGroups){ 
+        ForEach($Group in $JoinedGroups){
+            $GroupName = $Group.name
             Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False 
-            LogWrite "$Group"
+            LogWrite "$GroupName"
         }
     }
     #Disable AD User
