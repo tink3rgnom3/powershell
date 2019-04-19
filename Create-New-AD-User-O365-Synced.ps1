@@ -42,7 +42,7 @@ ForEach($NewUser in $Userlist){
 
     
     #Check if user exists
-    $UserExists = Get-ADUser -Filter {Name -eq $FullName} -ErrorAction SilentlyContinue
+    $UserExists = Get-ADUser -Filter {SamAccountName -eq $FullName} -ErrorAction SilentlyContinue
     If ($UserExists -eq $Null){
         New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Description $Description -Enabled:$True -Department $Department
         Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
