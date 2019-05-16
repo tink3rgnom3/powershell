@@ -1,4 +1,7 @@
-﻿
+function ConnectPremExch($MailServer,$LocalDomain){
+    New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
+}
+
 function MSOLConnected {
     Get-MsolDomain -ErrorAction SilentlyContinue | out-null
     $result = $?
