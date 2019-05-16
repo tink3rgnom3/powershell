@@ -1,5 +1,18 @@
-﻿Import-Module ActiveDirectory
 cd C:\source\scripts\
+Import-Module ActiveDirectory
+Import-Module .\Common-Functions.psm1
+
+function MSOLConnected {
+    Get-MsolDomain -ErrorAction SilentlyContinue | out-null
+    $result = $?
+    return $result
+}
+
+#Connect to MS Online
+If (-Not (MSOLConnected)){
+    .\O365PSOnlineConnect.ps1
+    Write-Host "Enter Office 365 admin credentials when prompted"
+}
 
 $Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-O365-Synced-Log.log"
 
@@ -10,14 +23,6 @@ Function LogWrite
    $TimeStamp = get-date -uformat "%Y/%m/%d %H:%M"
 
    Add-content $Logfile -value "[$TimeStamp] $logstring"
-}
-
-function SyncADtoO365(){
-    
-    Set-ExecutionPolicy Unrestricted -Force
-    Import-Module ADSync
-    Start-ADSyncSyncCycle -PolicyType Delta
-
 }
 
 $ScriptParams = Import-Csv .\Bulk-User-Offboarding-O365-Synced-Params.csv
