@@ -1,5 +1,18 @@
 cd C:\Source\Scripts
+Import-Module .\Common-Functions.psm1
+
+If (-Not (CheckRunningAsAdmin)){
+    Write-Host "You are not currently running as admin. Please relaunch as admin."
+    Start-Sleep -Seconds 10
+    exit
+}
 Import-Module ActiveDirectory
+
+#Connect to MS Online
+If (-Not (MSOLConnected)){
+    .\O365PSOnlineConnect.ps1
+    Write-Host "Enter Office 365 admin credentials when prompted"
+}
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
 $Parameters = Import-Csv .\Create-New-AD-User-O365-Synced-Params.csv
@@ -20,6 +33,11 @@ ForEach($NewUser in $Userlist){
     $Description = $NewUser.Description
     $Department = $NewUser.Department
     $UserToCopy = $NewUser.UserToCopy
+#   If(($NewUser.Path -ne $Null) -or ($NewUser.Path -ne "")){
+#       $Path = $NewUser.Path
+#    Else{
+#       $Path = $Parameters.Path
+#    }
     If($EmailConvention -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
     }
@@ -42,9 +60,9 @@ ForEach($NewUser in $Userlist){
 
     
     #Check if user exists
-    $UserExists = Get-ADUser -Filter {SamAccountName -eq $FullName} -ErrorAction SilentlyContinue
+    $UserExists = Get-ADUser -Filter {SamAccountName -eq $UserName} -ErrorAction SilentlyContinue
     If ($UserExists -eq $Null){
-        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Description $Description -Enabled:$True -Department $Department
+        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Path $Path -Description $Description -Enabled:$True -Department $Department -Title $Description
         Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
         Write-Host "User $Username has been created"
         Get-ADUser $Username
@@ -68,10 +86,10 @@ ForEach($NewUser in $Userlist){
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxyPrimary"}
     Get-ADUser -Identity $Username | Set-ADUser -Add @{ProxyAddresses="$ProxySecondary"}
     Get-AdUser -Identity $Username | Set-ADUser -Replace @{mail="$EmailAddr"}
-    Get-AdUser -Identity $Username | Set-ADUser -Replace @{title="$Description"}
+    #Get-AdUser -Identity $Username | Set-ADUser -Replace @{title="$Description"}
 
         #Copy groups from another user
-    If($UserToCopy -ne $Null){
+    If($UserToCopy -ne "None"){
         $SourceUser = Get-ADUser $UserToCopy -ErrorAction SilentlyContinue
         }
 
@@ -91,4 +109,4 @@ ForEach($NewUser in $Userlist){
     
 }
 
-.\AD_Sync.ps1
+SyncADtoO365
