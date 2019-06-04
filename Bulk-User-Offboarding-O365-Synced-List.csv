@@ -1,1 +1,2 @@
-FirstName,LastName
+FirstName,LastName,ForwardingAddress
+John,Doe,manager@contoso.com
