@@ -15,7 +15,7 @@ ForEach($NewUser in $Userlist){
     $LastName = $NewUser.Lastname
     $FullName = "$Firstname $LastName"
     $UserName = $NewUser.Username
-	$Principal = "$Username@$env:USERDNSDOMAIN"
+    $Principal = "$Username@$env:USERDNSDOMAIN"
     $Password = (ConvertTo-SecureString -String ($NewUser.Passwd) -AsPlainText -Force)
     $Description = $NewUser.Description
     $Department = $NewUser.Department
