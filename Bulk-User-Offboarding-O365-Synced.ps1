@@ -56,6 +56,8 @@ ForEach($OffUser in $Userlist){
     }
     #Clear mail field in AD
     Set-ADUser -Identity $Username -Clear Mail
+    #Reset user principal name domain to AD domain
+    Set-ADUser -Identity $Username -UserPrincipalName $Username@$env:USERDNSDOMAIN
     #Set to hide from address lists
     Set-ADUser -Identity $Username -Replace @{msExchHideFromAddressLists=$TRUE}
     #Attribute must be set to sync in AD connect and a transform rule must be in place
