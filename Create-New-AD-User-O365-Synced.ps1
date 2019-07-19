@@ -1,4 +1,4 @@
-cd C:\Source\Scripts
+Set-Location C:\Source\Scripts
 Import-Module .\Common-Functions.psm1
 
 If (-Not (CheckRunningAsAdmin)){
@@ -10,7 +10,7 @@ Import-Module ActiveDirectory
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
-    .\O365PSOnlineConnect.ps1
+    MSOnlineConnect
     Write-Host "Enter Office 365 admin credentials when prompted"
 }
 
@@ -53,7 +53,7 @@ ForEach($NewUser in $Userlist){
     Else{
         $EmailUsername = $FirstInitial + $LastName
     }
-    If($NewUser.EmailDomain -ne $Null){
+    If(-Not ($NewUser.EmailDomain)){
         $EmailDomain = $NewUser.EmailDomain
     }
     $EmailAddr = "$EmailUsername@$EmailDomain"
@@ -61,21 +61,22 @@ ForEach($NewUser in $Userlist){
     
     #Check if user exists
     $UserExists = Get-ADUser -Filter {SamAccountName -eq $UserName} -ErrorAction SilentlyContinue
-    If ($UserExists -eq $Null){
+    If (-Not ($UserExists)){
         New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Path $Path -Description $Description -Enabled:$True -Department $Department -Title $Description
         Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
         Write-Host "User $Username has been created"
         Get-ADUser $Username
     }
     Else{
-        Write-Host "User $Fullname already exists"
+        Write-Host "User $Fullname already exists as $Username. Try a different username"
         continue
     }
 
     $PrimarySMTP = "SMTP:"
     $SecondarySMTP = "smtp:"
 
-    $UserFullName = $FirstName + $LastName
+    #Variable not used, may be removed in the future
+    #$UserFullName = $FirstName + $LastName
 
     $UserMSEmail = "$Username@$ClientMSDomain"
 
@@ -93,8 +94,8 @@ ForEach($NewUser in $Userlist){
         $SourceUser = Get-ADUser $UserToCopy -ErrorAction SilentlyContinue
         }
 
-    If($SourceUser -ne $Null){
-        $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where {$_.Name -ne "Domain Users"}
+    If(-Not ($SourceUser)){
+        $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where-Object {$_.Name -ne "Domain Users"}
         ForEach($Group in $UserGroups){
             $GroupName = $Group.name
             Add-ADGroupMember -Identity $Group -Members $Username -ErrorAction SilentlyContinue
