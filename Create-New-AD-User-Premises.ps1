@@ -1,11 +1,17 @@
-﻿cd C:\Source\Scripts
+Set-Location C:\Source\Scripts
+Import-Module .\Common-Functions.psm1
+
+If (-Not (CheckRunningAsAdmin)){
+    Write-Host "You are not currently running as admin. Please relaunch as admin."
+    exit
+}
 Import-Module ActiveDirectory
 
 $Userlist = Import-Csv .\Create-New-AD-User-Premises-List.csv
 $Parameters = Import-Csv .\Create-New-AD-User-Premises-Params.csv
 $LocalDomain = $env:USERDNSDOMAIN
 $MailServer = $Parameters.MailServer
-$Path = $Parameters.Path
+$UserPath = $Parameters.UserPath
 $ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
 Import-PSSession $ExchSession -AllowClobber
 
@@ -15,7 +21,7 @@ ForEach($NewUser in $Userlist){
     $LastName = $NewUser.Lastname
     $FullName = "$Firstname $LastName"
     $UserName = $NewUser.Username
-    $Principal = "$Username@$env:USERDNSDOMAIN"
+	$Principal = "$Username@$env:USERDNSDOMAIN"
     $Password = (ConvertTo-SecureString -String ($NewUser.Passwd) -AsPlainText -Force)
     $Description = $NewUser.Description
     $Department = $NewUser.Department
@@ -23,22 +29,22 @@ ForEach($NewUser in $Userlist){
 
     #Check if user exists
     $UserExists = Get-ADUser -Filter {SamAccountName -eq $UserName} -ErrorAction SilentlyContinue
-    If ($UserExists -eq $Null){
-        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Description $Description -Enabled:$True -Path $Path -Department $Department
+    If (-Not ($UserExists)){
+        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Description $Description -Enabled:$True -Path $UserPath -Department $Department
         Write-Host "User $Username has been created"
         Get-ADUser $Username
 
         Enable-Mailbox -Identity $Username
     
         #Copy groups from another user
-        If($UserToCopy -ne $Null){
+        If($UserToCopy -ne "None"){
             $SourceUser = Get-ADUser $UserToCopy -ErrorAction SilentlyContinue
             }
 
-        If($SourceUser -ne $Null){
-            $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where {$_.Name -ne "Domain Users"}
+        If(-Not ($SourceUser)){
+            $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where-Object {$_.Name -ne "Domain Users"}
             ForEach($Group in $UserGroups){
-                $Groupname = $Group.name
+		$Group = $Group.name
                 Add-ADGroupMember -Identity $Group -Members $Username -ErrorAction SilentlyContinue
                 Write-Host "Copying user $Username to $Groupname"
                 }
