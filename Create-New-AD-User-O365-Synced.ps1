@@ -15,9 +15,9 @@ If (-Not (MSOLConnected)){
 }
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
-$Parameters = Import-Csv .\Create-New-AD-User-O365-Synced-Params.csv
+$Parameters = Import-Csv .\ADDS-O365-Synced-Params.csv
 $EmailDomain = $Parameters.EmailDomain
-$Path = $Parameters.Path
+$UserPath = $Parameters.UserPath
 $EmailConvention = $Parameters.EmailFormat
 $Clientmsdomain = $Parameters.MSDomain
 
@@ -33,10 +33,10 @@ ForEach($NewUser in $Userlist){
     $Description = $NewUser.Description
     $Department = $NewUser.Department
     $UserToCopy = $NewUser.UserToCopy
-#   If(($NewUser.Path -ne $Null) -or ($NewUser.Path -ne "")){
-#       $Path = $NewUser.Path
+#   If(($NewUser.UserPath -ne $Null) -or ($NewUser.UserPath -ne "")){
+#       $UserPath = $NewUser.UserPath
 #    Else{
-#       $Path = $Parameters.Path
+#       $UserPath = $Parameters.UserPath
 #    }
     If($EmailConvention -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
@@ -62,7 +62,7 @@ ForEach($NewUser in $Userlist){
     #Check if user exists
     $UserExists = Get-ADUser -Filter {SamAccountName -eq $UserName} -ErrorAction SilentlyContinue
     If (-Not ($UserExists)){
-        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Path $Path -Description $Description -Enabled:$True -Department $Department -Title $Description
+        New-ADUser -Name $FullName -GivenName $FirstName -Surname $LastName -DisplayName $FullName -SamAccountName $UserName -AccountPassword $Password  -UserPrincipalName $Principal -Path $UserPath -Description $Description -Enabled:$True -Department $Department -Title $Description
         Set-ADUser $Username -UserPrincipalName "$Username@$EmailDomain"
         Write-Host "User $Username has been created"
         Get-ADUser $Username
