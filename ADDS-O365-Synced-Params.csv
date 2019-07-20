@@ -1,2 +1,0 @@
-DisabledUserPath,MSDomain,EmailDomain,EmailFormat,UserPath
-"OU=Users,OU=Disabled,OU=Company,DC=contoso,DC=local","company.onmicrosoft.com","contoso.com",FirstnameLastName,"OU=Users,OU=Company,DC=contoso,DC=local"
