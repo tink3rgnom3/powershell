@@ -1,4 +1,4 @@
-cd C:\Source\Scripts
+Set-Location C:\Source\Scripts
 Import-Module .\Common-Functions.psm1
 
 If (-Not (CheckRunningAsAdmin)){
@@ -11,40 +11,41 @@ Import-Module ActiveDirectory
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
-    MSOnlineConnect
+    .\O365PSOnlineConnect
     Write-Host "Enter Office 365 admin credentials when prompted"
 }
 
 $Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-O365-Synced-Log.log"
 #See Common-Functions.psm1 for LogWrite function
 
-$ScriptParams = Import-Csv .\Bulk-User-Offboarding-O365-Synced-Params.csv
+$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
 $Userlist = Import-Csv .\Bulk-User-Offboarding-O365-Synced-List.csv
 $DisabledUserPath = $ScriptParams.DisabledUserPath
-$MSDomain = $ScriptParams.MSDOmain
+$MSDomain = $ScriptParams.MSDomain
 
-If($DisabledUserPath -eq $Null){
-    $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | %{$_.DistinguishedName}
+If(-Not ($DisabledUserPath)){
+    $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where-Object {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | ForEach-Object{$_.DistinguishedName}
 }
 
 ForEach($OffUser in $Userlist){
 
-    $FirstName = $Offuser.Firstname
-    $LastName = $Offuser.Lastname
-    $FullName = "$Firstname $Lastname"
-    $Username = Get-ADUser -Filter {Name -eq $FullName}
-    $FLastName = $FirstName[0] + $LastName
+    $FName = $Offuser.FirstName
+    $LName = $Offuser.LastName
+    $FullName = "$FName $LName"
+    $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | ForEach-Object{$_.SamAccountName}
+    $FLName = $FName[0] + $LName
     $ForwardingAddress = $Offuser.ForwardingAddress
 
     If(MSOLConnected){
         $Mailbox = Get-Mailbox -Identity $FullName
+        $MsolUser = Get-MsolUser | Where-Object{($_.FName -eq $FName) -and ($_.LName -eq $LName)}
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
     LogWrite "User $FullName is disabled"
 
     #Get AD Groups and remove from all but Domain Users
-    $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where {$_.Name -ne "Domain Users"}
+    $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where-Object {$_.Name -ne "Domain Users"}
 
     LogWrite "Removing $FullName from:"
     ForEach($Group in $JoinedGroups){ 
@@ -56,8 +57,8 @@ ForEach($OffUser in $Userlist){
     }
     #Clear mail field in AD
     Set-ADUser -Identity $Username -Clear Mail
-    #Reset user principal name domain to AD domain
-    Set-ADUser -Identity $Username -UserPrincipalName $Username@$env:USERDNSDOMAIN
+	#Reset user principal name domain to AD domain
+	Set-ADUser -Identity $Username -UserPrincipalName $Username@$env:USERDNSDOMAIN
     #Set to hide from address lists
     Set-ADUser -Identity $Username -Replace @{msExchHideFromAddressLists=$TRUE}
     #Attribute must be set to sync in AD connect and a transform rule must be in place
@@ -68,26 +69,28 @@ ForEach($OffUser in $Userlist){
     Get-ADUser $Username | Move-ADObject -TargetPath $DisabledUserPath
     LogWrite "User $FullName has been moved to Disabled Users"
 
+    #Set mailbox to shared, set forwarding
     If ($Mailbox){
-        #Set mailbox to shared
-        If ($Mailbox.isShared -eq $False){
-            Set-mailbox -Identity $Mailbox.alias -Type Shared
-            Write-Host "Setting mailbox for $FullName to Shared"
-        }
-        Else{
-            Write-Host "Mailbox is already shared"
-        }
-        #Forward mailbox
-        If ($ForwardingAddress -ne $Null){
-            Set-mailbox -ForwardingAddress $ForwardingAddress
-            Write-Host "Forwarding mailbox to $ForwardingAddress"
-        }
-        Else{
-            Write-Host "Could not forward mailbox"
-        }
+		If(-Not($Mailbox.isShared)){
+			Set-mailbox -Identity $Mailbox.alias -Type Shared
+			Write-Host "Setting mailbox for $FullName to Shared"
+		}
+		If($ForwardingAddress){
+			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
+		}
     }
     Else{
-        Write-Host "Please log into Office 365 to set mailbox to shared and forward"
+        Write-Host "Could not set to shared. Please log into Office 365 to finish offboarding tasks"
+    }
+    
+    If (($Mailbox.IsShared) -And ($MSolUser)){
+        Set-MsolUserLicense -UserPrincipalName $MsolUser.UserPrincipalName -RemoveLicenses $MSolUser.Licenses.AccountSkuId
+		Write-Host "Removed Office 365 license from $Fullname"
+		#Change user to .onmicrosoft.com format
+        Set-MsolUserPrincipalName -UserPrincipalName $MsolUser.UserPrincipalName -NewUserPrincipalName "$FLName@$MSDomain"
+    }
+    Else{
+        Write-Host "Mailbox is not shared. Did not remove license at this time."
     }
 
     Write-Host "User offboarding for $FullName is complete"
