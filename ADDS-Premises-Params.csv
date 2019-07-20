@@ -1,0 +1,2 @@
+MailServer,DisabledUserPath,UserPath
+COMP-EX01,"OU=Users,OU=Disabled,OU=Company,DC=Contoso,DC=local","OU=Users,OU=Contoso,DC=Company,DC=local"
