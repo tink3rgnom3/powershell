@@ -16,11 +16,11 @@ If (-Not (MSOLConnected)){
 }
 
 #Variable used for Logwrite function
-$Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-O365-Synced-Log.log"
+$Logfile = "C:\Source\Scripts\User-Offboarding-O365-Synced-Log.log"
 #See Common-Functions.psm1 for LogWrite function
 
 $ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
-$Userlist = Import-Csv .\Bulk-User-Offboarding-O365-Synced-List.csv
+$Userlist = Import-Csv .\User-Offboarding-O365-Synced-List.csv
 $DisabledUserPath = $ScriptParams.DisabledUserPath
 $MSDomain = $ScriptParams.MSDomain
 
