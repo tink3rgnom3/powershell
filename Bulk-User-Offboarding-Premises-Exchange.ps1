@@ -1,27 +1,26 @@
-cd C:\Source\Scripts
+Set-Location C:\Source\Scripts
+Import-Module .\Common-Functions.psm1
+
+If (-Not (CheckRunningAsAdmin)){
+    Write-Host "You are not currently running as admin. Please relaunch as admin."
+    exit
+}
+Import-Module ActiveDirectory
 
 $Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-Premises-Exchange-Log.log"
-Function LogWrite
-{
-   Param ([string]$logstring)
-
-   $TimeStamp = get-date -uformat "%Y/%m/%d %H:%M"
-
-   Add-content $Logfile -value "[$TimeStamp] $logstring"
-}
 
 $UserList = Import-Csv .\Bulk-User-Offboarding-Premises-Exchange-List.csv
-$Parameters = Import-Csv .\Bulk-User-Offboarding-Premises-Exchange-Params.csv
+$ScriptParams = Import-Csv .\ADDS-Premises-Params.csv
 $Server = $env:COMPUTERNAME
 $PathTest = Test-Path \\$server\C$\PST
-$MailServer = $Parameters.Mailserver
-$DisabledUserPath = $Parameters.DisabledUserPath
+$MailServer = $ScriptParams.Mailserver
+$DisabledUserPath = $ScriptParams.DisabledUserPath
 $LocalDomain = $env:USERDNSDOMAIN
 
-Import-Module ActiveDirectory
-$ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
-
-Import-PSSession $ExchSession -AllowClobber
+If (-Not (ExchConnected)){
+    $ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
+    Import-PSSession $ExchSession -AllowClobber
+}
 
 If ( $PathTest -eq $False ) { 
 mkdir C:\PST
@@ -33,24 +32,27 @@ ForEach ($UserToRemove in $Userlist){
     $Fname = $UsertoRemove.FirstName
     $Lname = $UserToRemove.LastName
     $FullName = "$Fname $Lname"
-    $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | %{$_.SamAccountName}
+    $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | ForEach-Object{$_.SamAccountName}
     $FwAddress = $UsertoRemove.ForwardingAddress
-
     $UserMailbox = Get-Mailbox $Username -ErrorAction SilentlyContinue
     
-    If($UserMailbox -ne $Null){
-        Set-mailbox $Username -HiddenFromAddressListsEnabled:$True -Confirm:$False -ErrorAction SilentlyContinue
+    If(-Not ($UserMailbox)){
+        Set-mailbox $Username -Type Shared -HiddenFromAddressListsEnabled:$True -Confirm:$False -ErrorAction SilentlyContinue
+        If($FwAddress -ne ''){
+            Set-Mailbox $Username -ForwardingAddress $FwAddress
+            LogWrite "Forwarding $Username to $FwAddress"
+        }
         New-MailboxExportRequest –Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
     }
     
-    If($DisabledUserPath -eq $Null){
-        $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | %{$_.DistinguishedName}
+    If(-Not ($DisabledUserPath)){
+        $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where-Object {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | ForEach-Object{$_.DistinguishedName}
     }
 
     #Get AD Groups and remove from all but Domain Users
     LogWrite "Removing user $Username from groups:"
-    $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where {$_.Name -ne "Domain Users"}
-    If ($JoinedGroups -ne $Null){
+    $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where-Object {$_.Name -ne "Domain Users"}
+    If (-Not ($JoinedGroups)){
         ForEach($Group in $JoinedGroups){
             $GroupName = $Group.name
             Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False 
