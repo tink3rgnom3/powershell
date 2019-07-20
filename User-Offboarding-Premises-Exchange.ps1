@@ -7,9 +7,9 @@ If (-Not (CheckRunningAsAdmin)){
 }
 Import-Module ActiveDirectory
 
-$Logfile = "C:\Source\Scripts\Bulk-User-Offboarding-Premises-Exchange-Log.log"
+$Logfile = "C:\Source\Scripts\User-Offboarding-Premises-Exchange-Log.log"
 
-$UserList = Import-Csv .\Bulk-User-Offboarding-Premises-Exchange-List.csv
+$UserList = Import-Csv .\User-Offboarding-Premises-Exchange-List.csv
 $ScriptParams = Import-Csv .\ADDS-Premises-Params.csv
 $Server = $env:COMPUTERNAME
 $PathTest = Test-Path \\$server\C$\PST
