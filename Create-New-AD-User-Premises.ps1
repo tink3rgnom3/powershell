@@ -8,10 +8,10 @@ If (-Not (CheckRunningAsAdmin)){
 Import-Module ActiveDirectory
 
 $Userlist = Import-Csv .\Create-New-AD-User-Premises-List.csv
-$Parameters = Import-Csv .\Create-New-AD-User-Premises-Params.csv
+$ScriptParams = Import-Csv .\ADDS-Premises-Params.csv
 $LocalDomain = $env:USERDNSDOMAIN
-$MailServer = $Parameters.MailServer
-$UserPath = $Parameters.UserPath
+$MailServer = $ScriptParams.MailServer
+$UserPath = $ScriptParams.UserPath
 $ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
 Import-PSSession $ExchSession -AllowClobber
 
