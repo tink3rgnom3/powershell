@@ -15,11 +15,11 @@ If (-Not (MSOLConnected)){
 }
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
-$Parameters = Import-Csv .\ADDS-O365-Synced-Params.csv
-$EmailDomain = $Parameters.EmailDomain
-$UserPath = $Parameters.UserPath
-$EmailConvention = $Parameters.EmailFormat
-$Clientmsdomain = $Parameters.MSDomain
+$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+$EmailDomain = $ScriptParams.EmailDomain
+$UserPath = $ScriptParams.UserPath
+$EmailConvention = $ScriptParams.EmailFormat
+$Clientmsdomain = $ScriptParams.MSDomain
 
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
@@ -36,7 +36,7 @@ ForEach($NewUser in $Userlist){
 #   If(($NewUser.UserPath -ne $Null) -or ($NewUser.UserPath -ne "")){
 #       $UserPath = $NewUser.UserPath
 #    Else{
-#       $UserPath = $Parameters.UserPath
+#       $UserPath = $ScriptParams.UserPath
 #    }
     If($EmailConvention -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
