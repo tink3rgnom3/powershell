@@ -1,0 +1,2 @@
+DisabledUserPath,MSDomain
+"OU=Users,OU=Disabled,OU=Company,DC=contoso,DC=local","company.onmicrosoft.com"
