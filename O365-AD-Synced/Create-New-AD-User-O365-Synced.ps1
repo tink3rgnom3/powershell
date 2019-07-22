@@ -33,11 +33,19 @@ ForEach($NewUser in $Userlist){
     $Description = $NewUser.Description
     $Department = $NewUser.Department
     $UserToCopy = $NewUser.UserToCopy
-#   If(($NewUser.UserPath -ne $Null) -or ($NewUser.UserPath -ne "")){
-#       $UserPath = $NewUser.UserPath
-#    Else{
-#       $UserPath = $ScriptParams.UserPath
-#    }
+    If(($NewUser.EmailDomain -ne $EmailDomain)){
+        $EmailDomain = $NewUser.EmailDomain
+    }
+    Else{
+        $EmailDomain = $ScriptParams.EmailDomain
+    }
+    If(($NewUser.CustomOU -ne "") -or (-Not ($NewUser.CustomOU))){
+        $UserPath = $NewUser.CustomOU
+    }
+    Else{
+        $UserPath = $ScriptParams.UserPath
+        }
+
     If($EmailConvention -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
     }
