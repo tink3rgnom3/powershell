@@ -75,12 +75,12 @@ ForEach($OffUser in $Userlist){
 		If(-Not($Mailbox.isShared)){
 			Set-mailbox -Identity $Mailbox.alias -Type Shared
 			Write-Host "Setting mailbox for $FullName to Shared"
-			#Need to reacquire mailbox after changing
-            $Mailbox = Get-Mailbox -Identity $Mailbox.alias
 		}
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
 		}
+		#Need to reacquire mailbox after changing
+        $Mailbox = Get-Mailbox -Identity $Mailbox.alias
     }
     Else{
         Write-Host "Could not set to shared. Please log into Office 365 to finish offboarding tasks"
