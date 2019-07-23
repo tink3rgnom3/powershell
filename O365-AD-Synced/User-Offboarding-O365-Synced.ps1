@@ -39,7 +39,7 @@ ForEach($OffUser in $Userlist){
 
     If(MSOLConnected){
         $Mailbox = Get-Mailbox -Identity $FullName
-        $MsolUser = Get-MsolUser | Where-Object{($_.FName -eq $FName) -and ($_.LName -eq $LName)}
+        $MsolUser = Get-MsolUser | Where-Object{(($_.FirstName -eq $FName) -and ($_.LastName -eq $LName))}
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
@@ -75,6 +75,8 @@ ForEach($OffUser in $Userlist){
 		If(-Not($Mailbox.isShared)){
 			Set-mailbox -Identity $Mailbox.alias -Type Shared
 			Write-Host "Setting mailbox for $FullName to Shared"
+			#Need to reacquire mailbox after changing
+            $Mailbox = Get-Mailbox -Identity $Mailbox.alias
 		}
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
