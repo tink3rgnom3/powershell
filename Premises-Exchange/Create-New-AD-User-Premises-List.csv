@@ -1,2 +1,2 @@
-FirstName,LastName,Username,Passwd,UserToCopy,Description,Department
-User,Person,UPerson,Password123!,,,
+FirstName,LastName,Username,Passwd,Description,Department,UserToCopy
+User,Person,UPerson,Password123!,"Outside Sales","Sales",
