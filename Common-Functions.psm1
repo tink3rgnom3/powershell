@@ -13,8 +13,7 @@ function ExchConnected {
     return $result
 }
 
-Function LogWrite
-{
+Function LogWrite {
    Param ([string]$logstring)
    $TimeStamp = get-date -uformat "%Y/%m/%d %H:%M"
    Add-content $Logfile -value "[$TimeStamp] $logstring"
@@ -39,7 +38,7 @@ function setO365License($Domain,$MSClient,$MSDomain){
     If (-Not (MSOLConnected)){
         MSOnlineConnect
     }
-    $USR = get-msoluser | Where-Object{($_.Firstname -eq $Firstname) -and ($_.Lastname -eq $Lastname)}
+    $USR = get-msoluser | Where-Object{(($_.Firstname -eq $Firstname) -and ($_.Lastname -eq $Lastname))}
     #This script will fetch license numbers and assign a license based on a chosen number.
     
     $Menu = @()
