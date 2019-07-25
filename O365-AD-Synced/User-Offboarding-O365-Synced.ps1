@@ -79,13 +79,14 @@ ForEach($OffUser in $Userlist){
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
 		}
-		#Need to reacquire mailbox after changing
-        $Mailbox = Get-Mailbox -Identity $Mailbox.alias
+
     }
     Else{
         Write-Host "Could not set to shared. Please log into Office 365 to finish offboarding tasks"
     }
-    
+	#Need to reacquire mailbox after changing
+	$Mailbox = Get-Mailbox -Identity $Mailbox.alias
+	
     If (($Mailbox.IsShared) -And ($MSolUser)){
         Set-MsolUserLicense -UserPrincipalName $MsolUser.UserPrincipalName -RemoveLicenses $MSolUser.Licenses.AccountSkuId
 		Write-Host "Removed Office 365 license from $Fullname"
