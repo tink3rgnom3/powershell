@@ -74,6 +74,7 @@ ForEach($OffUser in $Userlist){
     If ($Mailbox){
 		If(-Not($Mailbox.isShared)){
 			Set-mailbox -Identity $Mailbox.alias -Type Shared
+			$Mailbox.isShared = $True
 			Write-Host "Setting mailbox for $FullName to Shared"
 		}
 		If($ForwardingAddress){
