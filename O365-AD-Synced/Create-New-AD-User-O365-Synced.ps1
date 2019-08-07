@@ -39,12 +39,15 @@ ForEach($NewUser in $Userlist){
     Else{
         $EmailDomain = $ScriptParams.EmailDomain
     }
+    <#
+    #This is causing issues with user being created. Removing for now
     If(($NewUser.CustomOU -ne "") -or (-Not ($NewUser.CustomOU))){
         $UserPath = $NewUser.CustomOU
     }
     Else{
         $UserPath = $ScriptParams.UserPath
         }
+    #>
 
     If($EmailConvention -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
@@ -102,7 +105,7 @@ ForEach($NewUser in $Userlist){
         $SourceUser = Get-ADUser $UserToCopy -ErrorAction SilentlyContinue
         }
 
-    If(-Not ($SourceUser)){
+    If($SourceUser){
         $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where-Object {$_.Name -ne "Domain Users"}
         ForEach($Group in $UserGroups){
             $GroupName = $Group.name
