@@ -41,10 +41,10 @@ ForEach($NewUser in $Userlist){
             $SourceUser = Get-ADUser $UserToCopy -ErrorAction SilentlyContinue
             }
 
-        If(-Not ($SourceUser)){
+        If($SourceUser){
             $UserGroups = Get-ADPrincipalGroupMembership $SourceUser | Where-Object {$_.Name -ne "Domain Users"}
             ForEach($Group in $UserGroups){
-		$Group = $Group.name
+				$Groupname = $Group.name
                 Add-ADGroupMember -Identity $Group -Members $Username -ErrorAction SilentlyContinue
                 Write-Host "Copying user $Username to $Groupname"
                 }
