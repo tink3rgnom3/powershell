@@ -7,6 +7,7 @@ If (-Not (CheckRunningAsAdmin)){
 }
 Import-Module ActiveDirectory
 
+#Variable used for Logwrite function
 $Logfile = "C:\Source\Scripts\User-Offboarding-Premises-Exchange-Log.log"
 
 $UserList = Import-Csv .\User-Offboarding-Premises-Exchange-List.csv
@@ -36,13 +37,13 @@ ForEach ($UserToRemove in $Userlist){
     $FwAddress = $UsertoRemove.ForwardingAddress
     $UserMailbox = Get-Mailbox $Username -ErrorAction SilentlyContinue
     
-    If(-Not ($UserMailbox)){
+    If($UserMailbox){
         Set-mailbox $Username -Type Shared -HiddenFromAddressListsEnabled:$True -Confirm:$False -ErrorAction SilentlyContinue
         If($FwAddress -ne ''){
             Set-Mailbox $Username -ForwardingAddress $FwAddress
             LogWrite "Forwarding $Username to $FwAddress"
         }
-        New-MailboxExportRequest –Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
+        New-MailboxExportRequest -Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
     }
     
     If(-Not ($DisabledUserPath)){
@@ -52,7 +53,7 @@ ForEach ($UserToRemove in $Userlist){
     #Get AD Groups and remove from all but Domain Users
     LogWrite "Removing user $Username from groups:"
     $JoinedGroups = Get-ADPrincipalGroupMembership $Username | Where-Object {$_.Name -ne "Domain Users"}
-    If (-Not ($JoinedGroups)){
+    If ($JoinedGroups){
         ForEach($Group in $JoinedGroups){
             $GroupName = $Group.name
             Remove-ADGroupmember -Identity $Group -Members $Username -Confirm:$False 
