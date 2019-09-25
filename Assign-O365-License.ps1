@@ -1,6 +1,6 @@
 ﻿cd C:\Source\Scripts
 Import-Module .\Common-Functions.psm1
-$ScriptParams = .\ADDS-O365-Synced.csv
+$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
@@ -50,19 +50,27 @@ function setO365License(){
         
     }
 
-    Do{
+    If($Menu.Length){
+        Do{
 
-        [int]$Question = Read-Host -Prompt "Enter an item number"
-        [int]$Answer = $Question - 1
+            [int]$Question = Read-Host -Prompt "Enter an item number"
+            [int]$Answer = $Question - 1
     
-        If(($Answer -gt $Menu.Length) -and ($answer -le 0)){
-            Write-host "Sorry, that option isn't available"
-        }
-    } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
+            If(($Answer -gt $Menu.Length) -and ($answer -le 0)){
 
-    $UserLicense = $MSClient+ ":" + $Menu[$Answer]
-    Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
-    Write-Host " Assigned $UserLicense to $User"
+                Write-host "Sorry, that option isn't available"
+
+            }
+    
+        } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
+
+        $UserLicense = $MSClient+ ":" + $Menu[$Answer]
+        Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
+        Write-Host " Assigned $UserLicense to $User"
+    }
+    Else{
+        Write-Host "No licenses available"
+    }
 }
 
 function removeO365License(){
