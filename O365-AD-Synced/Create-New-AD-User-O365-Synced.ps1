@@ -20,6 +20,7 @@ $EmailDomain = $ScriptParams.EmailDomain
 $UserPath = $ScriptParams.UserPath
 $EmailConvention = $ScriptParams.EmailFormat
 $Clientmsdomain = $ScriptParams.MSDomain
+$MSTenantName = $ScriptParams.MSTenantName
 
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
@@ -118,7 +119,16 @@ ForEach($NewUser in $Userlist){
     Else{
         Write-Host "No groups to copy"
     }
-    
+	    
 }
 
 SyncADtoO365
+
+#Work in progress - assign O365 license
+#Start-Sleep -Seconds 30
+<#
+ForEach($NewUser in $Userlist){
+	#Using common function, feeding local variables
+	setO365License($NewUser.FirstName,$NewUser.LastName,$EmailDomain,$MSTenantName,$ClientMSDomain)
+
+#>

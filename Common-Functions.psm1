@@ -33,11 +33,12 @@ function MSOnlineConnect(){
 	Import-PSSession $Session -AllowClobber
 }
 
-function setO365License($Domain,$MSClient,$MSDomain){
+function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
 
     If (-Not (MSOLConnected)){
         MSOnlineConnect
     }
+	
     $USR = get-msoluser | Where-Object{(($_.Firstname -eq $Firstname) -and ($_.Lastname -eq $Lastname))}
     #This script will fetch license numbers and assign a license based on a chosen number.
     
@@ -76,7 +77,7 @@ function setO365License($Domain,$MSClient,$MSDomain){
         }
     } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
 
-    $UserLicense = $MSClient+ ":" + $Menu[$Answer]
+    $UserLicense = $MSTenantName+ ":" + $Menu[$Answer]
     Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
     Write-Host " Assigned $UserLicense to $User"
 }

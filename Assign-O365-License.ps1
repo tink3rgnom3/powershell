@@ -9,7 +9,7 @@ If (-Not (MSOLConnected)){
 
 #domain variables
 $Domain = $ScriptParams.EmailDomain
-$MSClient 
+
 $MSDomain = "$MSClient.onmicrosoft.com"
 
 #user variables
