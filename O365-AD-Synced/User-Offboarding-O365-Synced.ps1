@@ -34,7 +34,11 @@ ForEach($OffUser in $Userlist){
     $LName = $Offuser.LastName
     $FullName = "$FName $LName"
     $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | ForEach-Object{$_.SamAccountName}
-    $FLName = $FName[0] + $LName
+    If(-Not $Username){
+        Write-Host "Could not locate user $Fullname. Please check user exists in AD under that name."
+        continue
+    }
+	$FLName = $FName[0] + $LName
     $ForwardingAddress = $Offuser.ForwardingAddress
 
     If(MSOLConnected){

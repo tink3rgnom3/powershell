@@ -84,8 +84,15 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
 
 function SyncADtoO365(){
     Set-ExecutionPolicy Unrestricted -Force
-    Import-Module ADSync
     Try{
+        Import-Module ADSync
+    }
+    Catch{
+        Write-Host "Could not import ADSync module"
+    }
+
+    Try{
+		Write-Host "Starting AD Sync..."
         Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction Stop
     }
     Catch [System.InvalidOperationException]{
