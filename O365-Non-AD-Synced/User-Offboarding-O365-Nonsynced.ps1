@@ -12,7 +12,7 @@ Import-Module ActiveDirectory
 #Connect to MS Online
 If (-Not (MSOLConnected)){
     .\O365PSOnlineConnect
-    Write-Host "Enter Office 365 admin credentials when prompted"
+    $ExchangeConnected = ExchConnected
 }
 
 #Variable used for Logwrite function
@@ -34,12 +34,18 @@ ForEach($OffUser in $Userlist){
     $LName = $Offuser.LastName
     $FullName = "$FName $LName"
     $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | ForEach-Object{$_.SamAccountName}
+	If(-Not $Username){
+        Write-Host "Could not locate user $Fullname"
+        continue
+    }
     $FLName = $FName[0] + $LName
     $ForwardingAddress = $Offuser.ForwardingAddress
 
     If(MSOLConnected){
-        $Mailbox = Get-Mailbox -Identity $FullName
         $MsolUser = Get-MsolUser | Where-Object{(($_.FirstName -eq $FName) -and ($_.LastName -eq $LName))}
+    }
+    If($ExchangeConnected){
+        $Mailbox = Get-Mailbox -Identity $FullName
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
@@ -61,19 +67,12 @@ ForEach($OffUser in $Userlist){
 	#Reset user principal name domain to AD domain
 	Set-ADUser -Identity $Username -UserPrincipalName $Username@$env:USERDNSDOMAIN
     
-    
-
     #Move user to "Disabled Users" OU
     Get-ADUser $Username | Move-ADObject -TargetPath $DisabledUserPath
     LogWrite "User $FullName has been moved to Disabled Users"
 
     #Set mailbox to shared, set forwarding
     If ($Mailbox){
-		
-		#Hide mailbox from GAL in Exchange
-		Set-Mailbox -Identity $Mailbox.alias -HiddenFromAddressListsEnabled:$True
-		LogWrite "Removed $Fullname from global address list"
-		
 		If(-Not($Mailbox.isShared)){
 			Set-mailbox -Identity $Mailbox.alias -Type Shared
 			Write-Host "Setting mailbox for $FullName to Shared"
@@ -84,10 +83,12 @@ ForEach($OffUser in $Userlist){
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
 		}
-
+        Get-mailbox $Mailbox.alias | Select Name,IsShared,ForwardingAdddress
     }
     Else{
-        Write-Host "Could not set to shared. Please log into Office 365 to finish offboarding tasks"
+        Write-Host "Could not set mailbox to shared or enter forwarding address. 
+        Check the query results above to verify that it is shared.
+        Please log into Office 365 to finish offboarding tasks if any of the above failed."
     }
 
     If (($Mailbox.IsShared) -And ($MSolUser)){

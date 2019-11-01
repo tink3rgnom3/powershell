@@ -7,8 +7,8 @@ function ConnectPremExch($MailServer,$LocalDomain){
     New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
 }
 
-function ExchConnected {
-    Get-ExchangeServer -ErrorAction SilentlyContinue | out-null
+function ExchConnected() {
+    Get-ManagementRole -ErrorAction SilentlyContinue | out-null
     $result = $?
     return $result
 }
@@ -25,7 +25,7 @@ function MSOLConnected {
     return $result
 }
 
-function MSOnlineConnect(){    
+function Global:MSOnlineConnect(){    
 	$UserCredential = Get-Credential
     Write-Host "Enter Office 365 admin credentials when prompted"
 	$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection
@@ -40,6 +40,8 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
     }
 	
     $USR = get-msoluser | Where-Object{(($_.Firstname -eq $Firstname) -and ($_.Lastname -eq $Lastname))}
+    $UserObjId = $USR.ObjectID
+	
     #This script will fetch license numbers and assign a license based on a chosen number.
     
     $Menu = @()
@@ -59,7 +61,7 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
         
         $LicenseNumber = $Account.ActiveUnits - $Account.ConsumedUnits
         If($LicenseNumber -gt 0){
-            $Menu += $Account.SkuPartNumber
+            $Menu += $Account.AccountSkuId
             Write-Host "$ItemNumber : $Menu[$Place] ($LicenseNumber available)"
             $Place++
             $ItemNumber++
@@ -77,10 +79,11 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
         }
     } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
 
-    $UserLicense = $MSTenantName+ ":" + $Menu[$Answer]
+    $UserLicense = $Menu[$Answer]
     Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
     Write-Host " Assigned $UserLicense to $User"
 }
+
 
 function SyncADtoO365(){
     Set-ExecutionPolicy Unrestricted -Force

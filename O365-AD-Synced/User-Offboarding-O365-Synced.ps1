@@ -12,7 +12,7 @@ Import-Module ActiveDirectory
 #Connect to MS Online
 If (-Not (MSOLConnected)){
     .\O365PSOnlineConnect
-    Write-Host "Enter Office 365 admin credentials when prompted"
+    $ExchangeConnected = ExchConnected
 }
 
 #Variable used for Logwrite function
@@ -42,8 +42,10 @@ ForEach($OffUser in $Userlist){
     $ForwardingAddress = $Offuser.ForwardingAddress
 
     If(MSOLConnected){
-        $Mailbox = Get-Mailbox -Identity $FullName
         $MsolUser = Get-MsolUser | Where-Object{(($_.FirstName -eq $FName) -and ($_.LastName -eq $LName))}
+    }
+    If($ExchangeConnected){
+        $Mailbox = Get-Mailbox -Identity $FullName
     }
     #Disable AD User
     Set-ADUser $Username -Enabled $False
@@ -86,10 +88,12 @@ ForEach($OffUser in $Userlist){
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
 		}
-
+        Get-mailbox $Mailbox.alias | Select Name,IsShared,ForwardingAdddress
     }
     Else{
-        Write-Host "Could not set to shared. Please log into Office 365 to finish offboarding tasks"
+        Write-Host "Could not set mailbox to shared or enter forwarding address. 
+        Check the query results above to verify that it is shared.
+        Please log into Office 365 to finish offboarding tasks if any of the above failed."
     }
 
     If (($Mailbox.IsShared) -And ($MSolUser)){

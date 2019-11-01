@@ -20,6 +20,7 @@ $EmailDomain = $ScriptParams.EmailDomain
 $UserPath = $ScriptParams.UserPath
 $EmailConvention = $ScriptParams.EmailFormat
 $Clientmsdomain = $ScriptParams.MSDomain
+$MSTenantName = $ScriptParams.MSTenantName
 
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
@@ -118,6 +119,9 @@ ForEach($NewUser in $Userlist){
     Else{
         Write-Host "No groups to copy"
     }
+	#Create new MSOL account
+	New-MsolUser -UserPrincipalName $UserMSEmail -DisplayName $Fullname -FirstName $FirstName -LastName $LastName
+	setO365License($FirstName,$LastName,$EmailDomain,$MSTenantName,$ClientMSDomain)
     
 }
 
