@@ -1,23 +1,24 @@
 ﻿cd C:\Source\Scripts
 Import-Module .\Common-Functions.psm1
-$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
-    MSOnlineConnect
+    .\O365PSOnlineConnect.ps1
 }
 
+$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
 #domain variables
 $Domain = $ScriptParams.EmailDomain
-
-$MSDomain = "$MSClient.onmicrosoft.com"
+$MSClient = $ScriptParams.MSTenantName
+$MSDomain = $ScriptParams.MSDomain
 
 #user variables
-$UserFirstName = Read-Host -Prompt "Enter the user's first name"
-$UserLastName = Read-Host -Prompt "Enter the user's last name"
+$UserFirstName = $FirstName
+$UserLastName = $LastName
 $User = "$UserFirstname $UserLastName"
 $UserAlias = $UserFirstName[0] + $UserLastName
-$USR = Get-MsolUser | Where {$_.DisplayName -eq $User}
+$USR = Get-MsolUser | Where-Object{($_.FirstName -eq $UserFirstName) -and ($_.LastName -eq $UserLastName)}
+#Need debugging for "User not found error", either offer to wait longer or abort
 $UPN = $USR.UserPrincipalName
 $UserObjId = $USR.ObjectId
 
@@ -50,45 +51,19 @@ function setO365License(){
         
     }
 
-    If($Menu.Length){
-        Do{
+    Do{
 
-            [int]$Question = Read-Host -Prompt "Enter an item number"
-            [int]$Answer = $Question - 1
+        [int]$Question = Read-Host -Prompt "Enter an item number"
+        [int]$Answer = $Question - 1
     
-            If(($Answer -gt $Menu.Length) -and ($answer -le 0)){
+        If(($Answer -gt $Menu.Length) -and ($answer -le 0)){
+            Write-host "Sorry, that option isn't available"
+        }
+    } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
 
-                Write-host "Sorry, that option isn't available"
-
-            }
-    
-        } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
-
-        $UserLicense = $MSClient+ ":" + $Menu[$Answer]
-        Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
-        Write-Host " Assigned $UserLicense to $User"
-    }
-    Else{
-        Write-Host "No licenses available"
-    }
+    $UserLicense = $MSClient+ ":" + $Menu[$Answer]
+    Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
+    Write-Host " Assigned $UserLicense to $User"
 }
 
-function removeO365License(){
-    Set-MsolUserLicense -UserPrincipalName $USR.UserPrincipalName -RemoveLicenses $USR.Licenses.AccountSkuId
-}
-
-
-    Write-Host "
-    1. Set an Office 365 license
-    2. Remove an Office 365 license 
-    "
-    [int]$licenseOption = Read-Host -Prompt "Enter a menu option"
-
-    If($licenseOption -eq 1){
-        setO365License
-    }
-    elseif($licenseOption -eq 2){
-        removeO365License
-    }
-
-Write-Host ‘Type a menu number to get started’
+setO365License

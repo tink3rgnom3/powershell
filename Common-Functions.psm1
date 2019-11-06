@@ -25,12 +25,12 @@ function MSOLConnected {
     return $result
 }
 
-function Global:MSOnlineConnect(){    
+function MSOnlineConnect(){    
 	$UserCredential = Get-Credential
     Write-Host "Enter Office 365 admin credentials when prompted"
-	$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection
+	$Global:Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection
 	Connect-MsolService -Credential $UserCredential
-	Import-PSSession $Session -AllowClobber
+	
 }
 
 function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){

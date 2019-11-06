@@ -10,8 +10,7 @@ Import-Module ActiveDirectory
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
-    MSOnlineConnect
-    Write-Host "Enter Office 365 admin credentials when prompted"
+    .\O365PSOnlineConnect.ps1
 }
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
