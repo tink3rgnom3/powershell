@@ -69,6 +69,7 @@ ForEach($OffUser in $Userlist){
     #Set to hide from address lists
     Set-ADUser -Identity $Username -Replace @{msExchHideFromAddressLists=$TRUE}
     #Attribute must be set to sync in AD connect and a transform rule must be in place
+	#Need a rule to determine if the functional level is below 2012 and if so, leave out the next line
     Set-ADUser -Identity $Username -Replace @{"msDS-CloudExtensionAttribute1"="HideFromGAL"}
     LogWrite "Removed $Fullname from global address list"
 
@@ -87,6 +88,9 @@ ForEach($OffUser in $Userlist){
 		}
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
+		}
+		Else{
+			LogWrite "Not forwarding $Username, as no address was specified"
 		}
         Get-mailbox $Mailbox.alias | Select Name,IsShared,ForwardingAdddress
     }

@@ -83,6 +83,9 @@ ForEach($OffUser in $Userlist){
 		If($ForwardingAddress){
 			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
 		}
+		Else{
+			LogWrite "Not forwarding $Username, as no address was specified"
+		}
         Get-mailbox $Mailbox.alias | Select Name,IsShared,ForwardingAdddress
     }
     Else{

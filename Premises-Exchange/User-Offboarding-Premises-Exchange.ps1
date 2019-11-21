@@ -39,10 +39,13 @@ ForEach ($UserToRemove in $Userlist){
     
     If($UserMailbox){
         Set-mailbox $Username -Type Shared -HiddenFromAddressListsEnabled:$True -Confirm:$False -ErrorAction SilentlyContinue
-        If($FwAddress -ne ''){
+        If($FwAddress){
             Set-Mailbox $Username -ForwardingAddress $FwAddress
             LogWrite "Forwarding $Username to $FwAddress"
         }
+		Else{
+			LogWrite "Not forwarding $Username, as no address was specified"
+		}
         New-MailboxExportRequest -Mailbox $Username -FilePath \\$Server\C$\PST\$Username.pst -ErrorAction SilentlyContinue
     }
     
