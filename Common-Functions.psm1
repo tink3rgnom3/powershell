@@ -14,6 +14,10 @@ function ExchConnected() {
 }
 
 Function LogWrite {
+   $Logtest = Test-Path $Logfile
+   If(-Not ($Logtest)){
+      New-Item $Logfile
+   }
    Param ([string]$logstring)
    $TimeStamp = get-date -uformat "%Y/%m/%d %H:%M"
    Add-content $Logfile -value "[$TimeStamp] $logstring"

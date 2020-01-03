@@ -6,11 +6,12 @@ If (-Not (CheckRunningAsAdmin)){
     Start-Sleep -Seconds 10
     exit
 }
-Import-Module ActiveDirectory
-
-#Connect to MS Online
-If (-Not (MSOLConnected)){
-    .\O365PSOnlineConnect.ps1
+Try{
+	Import-Module ActiveDirectory -ErrorAction Stop
+}
+Catch {
+	Write-Host "Could not load Active Directory module. This script will exit."
+	exit
 }
 
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
@@ -20,6 +21,21 @@ $UserPath = $ScriptParams.UserPath
 $EmailConvention = $ScriptParams.EmailFormat
 $Clientmsdomain = $ScriptParams.MSDomain
 $MSTenantName = $ScriptParams.MSTenantName
+
+
+#Check for AD Connect service
+$AzureADchk = Get-Service AzureADConnectHealthSyncMonitor -ErrorAction SilentlyContinue
+$RemoteADSyncChk = $ScriptParams.RemoteADSync
+$ADSyncSrv = $ScriptParams.ADSyncSrv
+
+If( -Not $AzureADchk -and $RemoteADSyncChk -ne "True"){
+	Write-Host "Azure AD Synchronization service not found. Sync will not run for this script. If this client is synced to AD, please ensure you run it on a server running AD Sync service"
+	}
+	
+#Connect to MS Online
+If (-Not (MSOLConnected)){
+    .\O365PSOnlineConnect.ps1
+}
 
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
@@ -121,8 +137,17 @@ ForEach($NewUser in $Userlist){
 	    
 }
 
-SyncADtoO365
-
+If($AzureADchk){
+	SyncADtoO365
+}
+ElseIf($RemoteADSyncChk){
+    Try{
+        Invoke-Command -ComputerName $ADSyncSrv -FilePath .\AD_Sync.ps1 -ErrorAction Stop
+    }
+    Catch{
+        Write-Host "Remote command failed. Make sure remote server has PS Remoting enabled and AD_Sync.ps1 is present on this server."
+    }
+}
 #Work in progress - assign O365 license
 #Start-Sleep -Seconds 30
 <#

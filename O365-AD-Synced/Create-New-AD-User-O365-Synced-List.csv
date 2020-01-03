@@ -1,2 +1,2 @@
 FirstName,LastName,Username,EmailDomain,Passwd,Description,Department,UserToCopy
-User,Person,UPerson,company.com,Password123!,"CPA","Accounting",AUser
+User,Person,UPerson,company.com,Password123!,CPA,Accounting,AUser

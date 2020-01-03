@@ -62,8 +62,16 @@ function setO365License(){
     } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
 
     $UserLicense = $MSClient+ ":" + $Menu[$Answer]
-    Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
-    Write-Host " Assigned $UserLicense to $User"
+    Try{
+        Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense -ErrorAction Stop
+    }
+    Catch{
+        $UserLicense = "reseller-account:" + $Menu[$Answer]
+        Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense
+    }
+    If($?){
+        Write-Host " Assigned $UserLicense to $User"
+    }
 }
 
 setO365License
