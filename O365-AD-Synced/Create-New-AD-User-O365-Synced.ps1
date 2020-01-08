@@ -149,11 +149,8 @@ ElseIf($RemoteADSyncChk){
     }
 }
 #Work in progress - assign O365 license
-#Start-Sleep -Seconds 30
-<#
-ForEach($NewUser in $Userlist){
-	$USR = Get-MsolUser | Where-Object{($_.FirstName -eq $Userlist.FirstName) -and ($_.LastName -eq $UserList.LastName)}
-	#Using common function, feeding local variables
-	setO365License($NewUser.FirstName,$NewUser.LastName,$EmailDomain,$MSTenantName,$ClientMSDomain)
+Start-Sleep -Seconds 30
 
-#>
+ForEach($NewUser in $Userlist){
+	.\Assign-O365-License.ps1
+}

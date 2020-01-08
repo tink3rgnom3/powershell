@@ -7,6 +7,7 @@ If (-Not (MSOLConnected)){
 }
 
 $ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+$O365LicenseSkus = Import-Csv .\O365LicenseSkus.csv
 #domain variables
 $Domain = $ScriptParams.EmailDomain
 $MSClient = $ScriptParams.MSTenantName
@@ -30,7 +31,7 @@ function setO365License(){
     $Licenses = Get-MsolAccountSku
     $Place = 0
     $ItemNumber = 1
-
+    
     If($USR.UserPrincipalName -match "onmicrosoft.com"){
         Set-MsolUserPrincipalName -ObjectId $UserObjId -NewUserPrincipalName "$UserAlias@$Domain"
     }
@@ -42,13 +43,18 @@ function setO365License(){
     ForEach($Account in $Licenses){
         
         $LicenseNumber = $Account.ActiveUnits - $Account.ConsumedUnits
+        $ItemName = $O365SkuTable.$($Account.SkuPartNumber)
         If($LicenseNumber -gt 0){
             $Menu += $Account.SkuPartNumber
-            Write-Host "$ItemNumber : $Menu[$Place] ($LicenseNumber available)"
+            If($ItemName){
+                Write-Host "$ItemNumber : $ItemName ($LicenseNumber available)"
+            }
+            Else{
+                Write-Host "$ItemNumber : $Menu ($LicenseNumber available)"
+            }
             $Place++
             $ItemNumber++
         }
-        
     }
 
     Do{
