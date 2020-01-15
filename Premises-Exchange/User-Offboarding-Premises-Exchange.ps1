@@ -34,7 +34,11 @@ ForEach ($UserToRemove in $Userlist){
     $Lname = $UserToRemove.LastName
     $FullName = "$Fname $Lname"
     $Username = Get-AdUser -Filter {(GivenName -eq $FName) -and (Surname -eq $LName)} | ForEach-Object{$_.SamAccountName}
-    $FwAddress = $UsertoRemove.ForwardingAddress
+    If(-Not $Username){
+        Write-Host -ForegroundColor Red -BackgroundColor Yellow "Could not locate user $Fullname. Please check user exists in AD under that name."
+        continue
+    }
+	$FwAddress = $UsertoRemove.ForwardingAddress
     $UserMailbox = Get-Mailbox $Username -ErrorAction SilentlyContinue
     
     If($UserMailbox){
