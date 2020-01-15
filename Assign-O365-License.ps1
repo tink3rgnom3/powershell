@@ -55,6 +55,7 @@ function setO365License(){
             $Place++
             $ItemNumber++
         }
+        
     }
 
     Do{

@@ -22,6 +22,7 @@ $EmailConvention = $ScriptParams.EmailFormat
 $Clientmsdomain = $ScriptParams.MSDomain
 $MSTenantName = $ScriptParams.MSTenantName
 
+Write-Host "The default OU is $UserPath. Please make sure user is moved to the correct OU if this is not it."
 
 #Check for AD Connect service
 $AzureADchk = Get-Service AzureADConnectHealthSyncMonitor -ErrorAction SilentlyContinue

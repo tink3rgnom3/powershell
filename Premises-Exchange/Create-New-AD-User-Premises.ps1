@@ -15,6 +15,8 @@ $UserPath = $ScriptParams.UserPath
 $ExchSession = New-PSSession -ConfigurationName Microsoft.exchange -ConnectionUri "http://$MailServer.$LocalDomain/powershell"
 Import-PSSession $ExchSession -AllowClobber
 
+Write-Host "The default OU is $UserPath. Please make sure user is moved to the correct OU if this is not it."
+
 ForEach($NewUser in $Userlist){
 
     $FirstName = $NewUser.FirstName
