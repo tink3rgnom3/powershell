@@ -101,13 +101,18 @@ ForEach($OffUser in $Userlist){
     }
 
     If (($Mailbox.IsShared) -And ($MSolUser)){
-        Set-MsolUserLicense -UserPrincipalName $MsolUser.UserPrincipalName -RemoveLicenses $MSolUser.Licenses.AccountSkuId
-		Write-Host "Removed Office 365 license from $Fullname"
-		#Change user to .onmicrosoft.com format
-        Set-MsolUserPrincipalName -UserPrincipalName $MsolUser.UserPrincipalName -NewUserPrincipalName "$FLName@$MSDomain"
+                Try{
+            Set-MsolUserLicense -UserPrincipalName $MsolUser.UserPrincipalName -RemoveLicenses $MSolUser.Licenses.AccountSkuId
+		    Write-Host "Removed Office 365 license from $Fullname"
+		    #Change user to .onmicrosoft.com format
+            Set-MsolUserPrincipalName -UserPrincipalName $MsolUser.UserPrincipalName -NewUserPrincipalName "$FLName@$MSDomain"
+        }
+        Catch{
+            Write-Host "Unable to remove license at this time."
+        }
     }
     Else{
-        Write-Host "Mailbox is not shared. Did not remove license at this time."
+        Write-Host "Did not remove license at this time. Please check that mailbox is shared and remove license manually."
     }
 
     Write-Host "User offboarding for $FullName is complete"

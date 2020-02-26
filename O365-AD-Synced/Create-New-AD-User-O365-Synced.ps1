@@ -96,8 +96,12 @@ ForEach($NewUser in $Userlist){
         Get-ADUser $Username
     }
     Else{
+	#Preparing for restoring disabled user to AD
+	#	If($NewUser.ReturningUser -eq "Y"){}
+	#Else{
         Write-Host "User $Fullname already exists as $Username. Try a different username"
         continue
+	#	}
     }
 
     $PrimarySMTP = "SMTP:"
@@ -150,8 +154,14 @@ ElseIf($RemoteADSyncChk){
     }
 }
 #Work in progress - assign O365 license
-Start-Sleep -Seconds 30
-
 ForEach($NewUser in $Userlist){
-	.\Assign-O365-License.ps1
+    Start-Sleep -Seconds 30
+    $USR = Get-MsolUser | Where-Object{($_.FirstName -eq $FirstName) -and ($_.LastName -eq $LastName)}
+    If($USR){
+	    .\Assign-O365-License.ps1
+    }
+    Else{
+        Write-Host "Could not assign license to $FirstName $Lastname. 
+        Please assign license manually."
+    }
 }
