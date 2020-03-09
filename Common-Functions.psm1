@@ -13,14 +13,19 @@ function ExchConnected() {
     return $result
 }
 
-Function LogWrite {
+Function LogWrite([string]$logstring) {
    $Logtest = Test-Path $Logfile
    If(-Not ($Logtest)){
       New-Item $Logfile
    }
-   Param ([string]$logstring)
+   #Param ([string]$logstring)
    $TimeStamp = get-date -uformat "%Y/%m/%d %H:%M"
-   Add-content $Logfile -value "[$TimeStamp] $logstring"
+   Try{
+      Add-content $Logfile -value "[$TimeStamp] $logstring"
+   }
+   Catch{
+      Write-Host $logstring
+   }
 }
 
 function MSOLConnected {
@@ -91,23 +96,33 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
 
 function SyncADtoO365(){
     Set-ExecutionPolicy Unrestricted -Force
-    Try{
-        Import-Module ADSync
-    }
-    Catch{
-        Write-Host "Could not import ADSync module"
-    }
+    If($ScriptParams.RemoteADSync -ne "True"){
+        Try{
+            Import-Module ADSync
+        }
+        Catch{
+            Write-Host "Could not import ADSync module"
+        }
 
-    Try{
-		Write-Host "Starting AD Sync..."
-        Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction Stop
+        Try{
+		    Write-Host "Starting AD Sync..."
+            Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction Stop
+        }
+        Catch [System.InvalidOperationException]{
+            Write-Host "AAD is busy. Waiting 60 seconds to try again."
+            Start-Sleep -Seconds 60
+            Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction Stop
+        }
+        Catch{
+            Write-Host "Could not run AD Sync at this time. Please try again later."
+        }
     }
-    Catch [System.InvalidOperationException]{
-        Write-Host "AAD is busy. Waiting 60 seconds to try again."
-        Start-Sleep -Seconds 60
-        Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction Stop
-    }
-    Catch{
-        Write-Host "Could not run AD Sync at this time. Please try again later."
+    Else{
+        Try{
+            Invoke-Command -ComputerName $ScriptParams.ADSyncSrv -ScriptBlock {C:\Source\Scripts\AD_Sync.ps1}
+        }
+        Catch{
+            Write-Host "Remote AD Sync failed. Check that script is present and remote server has PS Remoting enabled"
+        }
     }
 }
