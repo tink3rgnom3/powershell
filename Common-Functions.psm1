@@ -96,7 +96,7 @@ function setO365License($FirstName,$LastName,$Domain,$MSTenantName,$MSDomain){
 
 function SyncADtoO365(){
     Set-ExecutionPolicy Unrestricted -Force
-    If($ScriptParams.RemoteADSync -ne "True"){
+    If($RemoteADSync){
         Try{
             Import-Module ADSync
         }

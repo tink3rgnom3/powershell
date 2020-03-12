@@ -1,21 +1,28 @@
-﻿cd C:\Source\Scripts
+﻿Set-Location C:\Source\Scripts
 Import-Module .\Common-Functions.psm1
+. .\ADDS-O365-Synced-Params.ps1
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
     .\O365PSOnlineConnect.ps1
 }
 
-$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
-$O365LicenseSkus = Import-Csv .\O365LicenseSkus.csv
+#$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+$O365LicenseSkuTable = Import-Csv .\O365LicenseSkus.csv
 #domain variables
-$Domain = $ScriptParams.EmailDomain
-$MSClient = $ScriptParams.MSTenantName
-$MSDomain = $ScriptParams.MSDomain
+#$Domain = $ScriptParams.EmailDomain
+#$MSClient = $ScriptParams.MSTenantName
+#$MSDomain = $ScriptParams.MSDomain
 
 #user variables
 $UserFirstName = $FirstName
+If(-Not $UserFirstName){
+    $UserFirstName = Read-Host -Prompt "Enter the user's first name"
+}
 $UserLastName = $LastName
+If(-Not $UserLastName){
+    $UserLastName = Read-Host -Prompt "Enter the user's last name"
+}
 $User = "$UserFirstname $UserLastName"
 $UserAlias = $UserFirstName[0] + $UserLastName
 $USR = Get-MsolUser | Where-Object{($_.FirstName -eq $UserFirstName) -and ($_.LastName -eq $UserLastName)}
@@ -33,7 +40,7 @@ function setO365License(){
     $ItemNumber = 1
     
     If($USR.UserPrincipalName -match "onmicrosoft.com"){
-        Set-MsolUserPrincipalName -ObjectId $UserObjId -NewUserPrincipalName "$UserAlias@$Domain"
+        Set-MsolUserPrincipalName -ObjectId $UserObjId -NewUserPrincipalName "$UserAlias@$EmailDomain"
     }
 
     If($USR.UsageLocation -eq $Null){
@@ -68,7 +75,7 @@ function setO365License(){
         }
     } until(($Answer -lt $Menu.Length) -and ($answer -ge 0))
 
-    $UserLicense = $MSClient+ ":" + $Menu[$Answer]
+    $UserLicense = $MSTenantName+ ":" + $Menu[$Answer]
     Try{
         Set-MsolUserLicense -ObjectId $UserObjId -AddLicenses $UserLicense -ErrorAction Stop
     }

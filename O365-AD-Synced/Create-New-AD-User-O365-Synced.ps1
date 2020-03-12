@@ -14,20 +14,22 @@ Catch {
 	exit
 }
 
+#$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+#ScriptParams is being replaced by the line below
+. .\ADDS-O365-Synced-Params.ps1
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
-$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
-$EmailDomain = $ScriptParams.EmailDomain
-$UserPath = $ScriptParams.UserPath
-$EmailConvention = $ScriptParams.EmailFormat
+#$EmailDomain = $ScriptParams.EmailDomain
+#$UserPath = $ScriptParams.UserPath
+#$EmailFormat = $ScriptParams.EmailFormat
 $Clientmsdomain = $ScriptParams.MSDomain
-$MSTenantName = $ScriptParams.MSTenantName
+#$MSTenantName = $ScriptParams.MSTenantName
 
 Write-Host "The default OU is $UserPath. Please make sure user is moved to the correct OU if this is not it."
 
 #Check for AD Connect service
 $AzureADchk = Get-Service AzureADConnectHealthSyncMonitor -ErrorAction SilentlyContinue
-$RemoteADSyncChk = $ScriptParams.RemoteADSync
-$ADSyncSrv = $ScriptParams.ADSyncSrv
+#$RemoteADSyncChk = $RemoteADSync
+$ADSyncSrv = $ADSyncSrv
 
 If( -Not $AzureADchk -and $RemoteADSyncChk -ne "True"){
 	Write-Host "Azure AD Synchronization service not found. Sync will not run for this script. If this client is synced to AD, please ensure you run it on a server running AD Sync service"
@@ -35,7 +37,7 @@ If( -Not $AzureADchk -and $RemoteADSyncChk -ne "True"){
 	
 #Connect to MS Online
 If (-Not (MSOLConnected)){
-    .\O365PSOnlineConnect.ps1
+    . MSOnlineConnect
 }
 
 ForEach($NewUser in $Userlist){
@@ -66,16 +68,16 @@ ForEach($NewUser in $Userlist){
         }
     #>
 
-    If($EmailConvention -eq "FirstNameLastName"){
+    If($EmailFormat -eq "FirstNameLastName"){
         $EmailUsername = $FirstName + $LastName
     }
-    ElseIf($EmailConvention -eq "FirstNameLastInitial"){
+    ElseIf($EmailFormat -eq "FirstNameLastInitial"){
         $EmailUsername = $FirstName + $LastInitial
     }
-    ElseIf($EmailConvention -eq "Firstname.LastName"){
+    ElseIf($EmailFormat -eq "Firstname.LastName"){
         $Emailusername = $FirstName + "." + $LastName
     }
-    ElseIf($EmailConvention -eq "FirstName"){
+    ElseIf($EmailFormat -eq "FirstName"){
         $EmailUsername = $FirstName
     }
     Else{
@@ -145,7 +147,7 @@ ForEach($NewUser in $Userlist){
 If($AzureADchk){
 	SyncADtoO365
 }
-ElseIf($RemoteADSyncChk){
+ElseIf($RemoteADSync){
     Try{
         Invoke-Command -ComputerName $ADSyncSrv -FilePath .\AD_Sync.ps1 -ErrorAction Stop
     }

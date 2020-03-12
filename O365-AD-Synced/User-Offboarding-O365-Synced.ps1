@@ -19,10 +19,13 @@ If (-Not (MSOLConnected)){
 $Logfile = "C:\Source\Scripts\User-Offboarding-O365-Synced-Log.log"
 #See Common-Functions.psm1 for LogWrite function
 
-$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+#$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
+#ScriptParams is being replaced by the line below
+. .\ADDS-O365-Synced-Params.ps1
 $Userlist = Import-Csv .\User-Offboarding-O365-Synced-List.csv
-$DisabledUserPath = $ScriptParams.DisabledUserPath
-$MSDomain = $ScriptParams.MSDomain
+#Deprecated, pending testing
+#$DisabledUserPath = $ScriptParams.DisabledUserPath
+#$MSDomain = $ScriptParams.MSDomain
 
 If(-Not ($DisabledUserPath)){
     $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where-Object {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | ForEach-Object{$_.DistinguishedName}
