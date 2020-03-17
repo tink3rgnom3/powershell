@@ -9,6 +9,10 @@ If (-Not (MSOLConnected)){
 
 #$ScriptParams = Import-Csv .\ADDS-O365-Synced-Params.csv
 $O365LicenseSkuTable = Import-Csv .\O365LicenseSkus.csv
+$SkuTranslationTable = @{}
+ForEach($Sku in $O365LicenseSkuTable){
+    $SkuTranslationTable.Add($Sku.Skupartnumber,$Sku.SkuName)
+}
 #domain variables
 #$Domain = $ScriptParams.EmailDomain
 #$MSClient = $ScriptParams.MSTenantName
@@ -50,7 +54,7 @@ function setO365License(){
     ForEach($Account in $Licenses){
         
         $LicenseNumber = $Account.ActiveUnits - $Account.ConsumedUnits
-        $ItemName = $O365SkuTable.$($Account.SkuPartNumber)
+        $ItemName = $SkuTranslationTable.$($Account.SkuPartNumber)
         If($LicenseNumber -gt 0){
             $Menu += $Account.SkuPartNumber
             If($ItemName){
