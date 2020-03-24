@@ -5,9 +5,13 @@ If (-Not (CheckRunningAsAdmin)){
     Write-Host "You are not currently running as admin. Please relaunch as admin."
     exit
 }
-
-Import-Module ActiveDirectory
-
+Try{
+	Import-Module ActiveDirectory -ErrorAction Stop
+}
+Catch {
+	Write-Host "Could not load Active Directory module. This script will exit."
+	exit
+}
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){

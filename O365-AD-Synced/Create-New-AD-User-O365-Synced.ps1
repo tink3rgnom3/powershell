@@ -29,7 +29,7 @@ Write-Host "The default OU is $UserPath. Please make sure user is moved to the c
 #Check for AD Connect service
 $AzureADchk = Get-Service AzureADConnectHealthSyncMonitor -ErrorAction SilentlyContinue
 #$RemoteADSyncChk = $RemoteADSync
-$ADSyncSrv = $ADSyncSrv
+#$ADSyncSrv = $ADSyncSrv
 
 If( -Not $AzureADchk -and $RemoteADSyncChk -ne "True"){
 	Write-Host "Azure AD Synchronization service not found. Sync will not run for this script. If this client is synced to AD, please ensure you run it on a server running AD Sync service"

@@ -5,9 +5,13 @@ If (-Not (CheckRunningAsAdmin)){
     Write-Host "You are not currently running as admin. Please relaunch as admin."
     exit
 }
-
-Import-Module ActiveDirectory
-
+Try{
+	Import-Module ActiveDirectory -ErrorAction Stop
+}
+Catch {
+	Write-Host "Could not load Active Directory module. This script will exit."
+	exit
+}
 
 #Connect to MS Online
 If (-Not (MSOLConnected)){
@@ -19,10 +23,13 @@ If (-Not (MSOLConnected)){
 $Logfile = "C:\Source\Scripts\User-Offboarding-O365-Nonsynced-Log.log"
 #See Common-Functions.psm1 for LogWrite function
 
-$ScriptParams = Import-Csv .\ADDS-O365-Nonsynced-Params.csv
+#$ScriptParams = Import-Csv .\ADDS-O365-Nonsynced-Params.csv
+#ScriptParams is being replaced by the line below
+. .\ADDS-O365-Nonsynced-Params.ps1
 $Userlist = Import-Csv .\User-Offboarding-O365-Nonsynced-List.csv
-$DisabledUserPath = $ScriptParams.DisabledUserPath
-$MSDomain = $ScriptParams.MSDomain
+#Deprecated, pending testing
+#$DisabledUserPath = $ScriptParams.DisabledUserPath
+#$MSDomain = $ScriptParams.MSDomain
 
 If(-Not ($DisabledUserPath)){
     $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where-Object {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | ForEach-Object{$_.DistinguishedName}

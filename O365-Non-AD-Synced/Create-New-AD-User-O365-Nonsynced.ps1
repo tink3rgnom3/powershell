@@ -6,21 +6,30 @@ If (-Not (CheckRunningAsAdmin)){
     Start-Sleep -Seconds 10
     exit
 }
-Import-Module ActiveDirectory
-
+Try{
+	Import-Module ActiveDirectory -ErrorAction Stop
+}
+Catch {
+	Write-Host "Could not load Active Directory module. This script will exit."
+	exit
+}
 #Connect to MS Online
 If (-Not (MSOLConnected)){
     .\O365PSOnlineConnect.ps1
     Write-Host "Enter Office 365 admin credentials when prompted"
 }
 
+
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Nonsynced-List.csv
-$ScriptParams = Import-Csv .\ADDS-O365-Nonsynced-Params.csv
-$EmailDomain = $ScriptParams.EmailDomain
-$UserPath = $ScriptParams.UserPath
-$EmailConvention = $ScriptParams.EmailFormat
-$Clientmsdomain = $ScriptParams.MSDomain
-$MSTenantName = $ScriptParams.MSTenantName
+#$ScriptParams = Import-Csv .\ADDS-O365-Nonsynced-Params.csv
+. .\ADDS-O365-Nonsynced-Params.ps1
+#$EmailDomain = $ScriptParams.EmailDomain
+#$UserPath = $ScriptParams.UserPath
+#$EmailConvention = $ScriptParams.EmailFormat
+#$Clientmsdomain = $ScriptParams.MSDomain
+#$MSTenantName = $ScriptParams.MSTenantName
+
+Write-Host "The default OU is $UserPath. Please make sure user is moved to the correct OU if this is not it."
 
 ForEach($NewUser in $Userlist){
     $FirstName = $NewUser.FirstName
@@ -120,8 +129,8 @@ ForEach($NewUser in $Userlist){
         Write-Host "No groups to copy"
     }
 	#Create new MSOL account
-	New-MsolUser -UserPrincipalName $UserMSEmail -DisplayName $Fullname -FirstName $FirstName -LastName $LastName
-	setO365License($FirstName,$LastName,$EmailDomain,$MSTenantName,$ClientMSDomain)
+	New-MsolUser -UserPrincipalName $EmailAddr -DisplayName $Fullname -FirstName $FirstName -LastName $LastName
+	.\Assign-O365-License.ps1
     
 }
 
