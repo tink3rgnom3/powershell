@@ -46,9 +46,8 @@ ForEach($NewUser in $Userlist){
     If(($NewUser.EmailDomain -ne $EmailDomain)){
         $EmailDomain = $NewUser.EmailDomain
     }
-    Else{
-        $EmailDomain = $ScriptParams.EmailDomain
-    }
+
+}
     <#
     #This is causing issues with user being created. Removing for now
     If(($NewUser.CustomOU -ne "") -or (-Not ($NewUser.CustomOU))){

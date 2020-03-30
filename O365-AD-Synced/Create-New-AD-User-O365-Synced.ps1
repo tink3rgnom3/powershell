@@ -18,10 +18,11 @@ Catch {
 #ScriptParams is being replaced by the line below
 . .\ADDS-O365-Synced-Params.ps1
 $Userlist = Import-Csv .\Create-New-AD-User-O365-Synced-List.csv
+$LocalDomain = $env:USERDNSDOMAIN
 #$EmailDomain = $ScriptParams.EmailDomain
 #$UserPath = $ScriptParams.UserPath
 #$EmailFormat = $ScriptParams.EmailFormat
-$Clientmsdomain = $ScriptParams.MSDomain
+#$Clientmsdomain = $ScriptParams.MSDomain
 #$MSTenantName = $ScriptParams.MSTenantName
 
 Write-Host "The default OU is $UserPath. Please make sure user is moved to the correct OU if this is not it."
@@ -29,7 +30,7 @@ Write-Host "The default OU is $UserPath. Please make sure user is moved to the c
 #Check for AD Connect service
 $AzureADchk = Get-Service AzureADConnectHealthSyncMonitor -ErrorAction SilentlyContinue
 #$RemoteADSyncChk = $RemoteADSync
-#$ADSyncSrv = $ADSyncSrv
+
 
 If( -Not $AzureADchk -and $RemoteADSyncChk -ne "True"){
 	Write-Host "Azure AD Synchronization service not found. Sync will not run for this script. If this client is synced to AD, please ensure you run it on a server running AD Sync service"
@@ -47,7 +48,7 @@ ForEach($NewUser in $Userlist){
     $UserName = $NewUser.Username
     $FirstInitial = $FirstName[0]
     $LastInitial = $LastName[0]
-    $Principal = "$Username@$env:USERDNSDOMAIN"
+    $Principal = "$Username@$LocalDomain"
     $Password = (ConvertTo-SecureString -String ($NewUser.Passwd) -AsPlainText -Force)
     $Description = $NewUser.Description
     $Department = $NewUser.Department
@@ -55,9 +56,7 @@ ForEach($NewUser in $Userlist){
     If(($NewUser.EmailDomain -ne $EmailDomain)){
         $EmailDomain = $NewUser.EmailDomain
     }
-    Else{
-        $EmailDomain = $ScriptParams.EmailDomain
-    }
+
     <#
     #This is causing issues with user being created. Removing for now
     If(($NewUser.CustomOU -ne "") -or (-Not ($NewUser.CustomOU))){
@@ -112,7 +111,7 @@ ForEach($NewUser in $Userlist){
     #Variable not used, may be removed in the future
     #$UserFullName = $FirstName + $LastName
 
-    $UserMSEmail = "$Username@$ClientMSDomain"
+    $UserMSEmail = "$Username@$MSDomain"
 
     $ProxyPrimary = $PrimarySMTP + $EmailAddr
     $ProxySecondary = $SecondarySMTP + $UserMSEmail
