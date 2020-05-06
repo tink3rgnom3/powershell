@@ -1,2 +1,0 @@
-DisabledUserPath,MSDomain,EmailDomain,EmailFormat,MSTenantName,UserPath,RemoteADSync,ADSyncSrv
-"OU=Users,OU=Disabled,OU=Company,DC=contoso,DC=local","company.onmicrosoft.com","contoso.com",companyllc,FirstnameLastName,"OU=Users,OU=Company,DC=contoso,DC=local",False,

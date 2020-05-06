@@ -32,7 +32,9 @@ $Userlist = Import-Csv .\User-Offboarding-O365-Nonsynced-List.csv
 #$MSDomain = $ScriptParams.MSDomain
 
 If(-Not ($DisabledUserPath)){
-    $DisabledUserPath = Get-ADOrganizationalUnit -Filter * | Where-Object {($_.DistinguishedName -like "OU=Users,OU=Disabled*") -or ($_.Name -eq "Disabled Accounts" -or "Disabled Users")} | ForEach-Object{$_.DistinguishedName}
+    Write-Host "Could not locate a path for disabled users. Please correct and run again."
+    Start-sleep -Seconds 15
+    exit
 }
 
 ForEach($OffUser in $Userlist){
