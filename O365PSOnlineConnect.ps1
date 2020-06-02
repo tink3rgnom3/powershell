@@ -5,6 +5,9 @@ If($PSVersionCheck -ge 5){
     $MSEXOCheck = Get-InstalledModule -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
     If(-Not $MSEXOCheck){
         Try{
+            $webclient=New-Object System.Net.WebClient
+            $webclient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+            [Net.ServicePointManager]::SecurityProtocol = "tls12"
             Install-Module ExchangeOnlineManagement -ErrorAction Stop
         }
         Catch{
