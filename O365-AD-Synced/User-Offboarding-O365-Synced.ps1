@@ -84,14 +84,26 @@ ForEach($OffUser in $Userlist){
     #Set mailbox to shared, set forwarding
     If ($Mailbox){
 		If(-Not($Mailbox.isShared)){
-			Set-mailbox -Identity $Mailbox.alias -Type Shared
-			Write-Host "Setting mailbox for $FullName to Shared"
+			Try{
+				Set-mailbox -Identity $Mailbox.alias -Type Shared
+				Write-Host "Setting mailbox for $FullName to Shared"
+			}
+			Catch{
+				LogWrite "Could not set mailbox to Shared. Please ensure this is complete before removing license."
+			}
 		}
+		#After setting the mailbox to shared, the object did not update, so this next step was necessary
 		If($?){
 			$Mailbox.isShared = $True
 		}
 		If($ForwardingAddress){
-			Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
+			Try{
+				Set-mailbox -Identity $Mailbox.alias -ForwardingAddress $ForwardingAddress
+				LogWrite "Forwarding $Username to $ForwardingAddress"
+			}
+			Catch{
+				LogWrite "Unable to set mailbox to shared. Please make sure forwarding was completed."
+			}
 		}
 		Else{
 			LogWrite "Not forwarding $Username, as no address was specified"
@@ -99,9 +111,7 @@ ForEach($OffUser in $Userlist){
         Get-mailbox $Mailbox.alias | Select Name,IsShared,ForwardingAdddress
     }
     Else{
-        Write-Host "Could not set mailbox to shared or enter forwarding address. 
-        Check the query results above to verify that it is shared.
-        Please log into Office 365 to finish offboarding tasks if any of the above failed."
+        Write-Host "Please log into Office 365 to finish offboarding tasks if any of the above failed."
     }
 
     If (($Mailbox.IsShared) -And ($MSolUser)){
