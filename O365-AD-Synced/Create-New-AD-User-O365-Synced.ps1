@@ -162,7 +162,7 @@ ForEach($NewUser in $Userlist){
 		$Count++
 		Start-Sleep -Seconds 30
 	}
-	Until($USR -or $Count = 5)
+	Until($USR -or ($Count = 5))
 	
     If($USR){
 	    .\Assign-O365-License.ps1
