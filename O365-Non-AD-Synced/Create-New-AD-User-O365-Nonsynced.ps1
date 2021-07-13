@@ -128,7 +128,7 @@ ForEach($NewUser in $Userlist){
         Write-Host "No groups to copy"
     }
 	#Create new MSOL account
-	New-MsolUser -UserPrincipalName $EmailAddr -DisplayName $Fullname -FirstName $FirstName -LastName $LastName
+	New-MsolUser -UserPrincipalName $EmailAddr -DisplayName $Fullname -FirstName $FirstName -LastName $LastName -Password $Password
 	.\Assign-O365-License.ps1
     
 }

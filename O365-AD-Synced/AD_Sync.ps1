@@ -1,7 +1,13 @@
 Set-ExecutionPolicy Unrestricted -Force
-Set-Location C:\Source\Scripts
-Import-Module .\Common-Functions.psm1
-. .\ADDS-O365-Synced-Params.ps1
+
+Try{
+    Set-Location C:\Source\Scripts -ErrorAction Stop
+    Import-Module .\Common-Functions.psm1 -ErrorAction Stop
+    . .\ADDS-O365-Synced-Params.ps1
+}
+Catch{
+    Write-Host "Could not locate C:\Source\Scripts or supporting files in folder. Attempting sync..."
+}
 
 If(-Not $RemoteADSync){
 	Try{
