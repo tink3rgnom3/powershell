@@ -19,11 +19,11 @@ If($PSVersionCheck -ge 5){
     }
 }
     
-$UserCredential = Get-Credential
+#$UserCredential = Get-Credential
 
 #Connect-MsolService fails unless PS version is >= 5. Exchange cmdlets will be available but not MS Online
 Try{
-    Connect-ExchangeOnline -Credential $UserCredential -ShowProgress $true -ErrorAction Stop
+    Connect-ExchangeOnline -ShowProgress $true -ErrorAction Stop
     Connect-MsolService -Credential $UserCredential
 }
 Catch{

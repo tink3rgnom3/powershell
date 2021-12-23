@@ -35,10 +35,38 @@ function MSOLConnected {
 }
 
 function MSOnlineConnect(){    
-	$UserCredential = Get-Credential
-    Write-Host "Enter Office 365 admin credentials when prompted"
-	$Global:Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection
-	Connect-MsolService -Credential $UserCredential
+	
+$PSVersionCheck = $PSVersionTable.PSVersion.Major
+If($PSVersionCheck -ge 5){
+    $MSEXOCheck = Get-InstalledModule -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+    If(-Not $MSEXOCheck){
+        Try{
+            $webclient=New-Object System.Net.WebClient
+            $webclient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+            [Net.ServicePointManager]::SecurityProtocol = "tls12"
+            Install-Module ExchangeOnlineManagement -ErrorAction Stop
+        }
+        Catch{
+            $MSOnlineCheck = Get-InstalledModule -Name MSOnline -ErrorAction SilentlyContinue
+	        If(-Not $MSOnlineCheck){
+		    Install-Module MSOnline -Confirm:$False
+            }
+        }
+    }
+}
+    
+#$UserCredential = Get-Credential
+
+#Connect-MsolService fails unless PS version is >= 5. Exchange cmdlets will be available but not MS Online
+Try{
+    Connect-ExchangeOnline -ShowProgress $true -ErrorAction Stop
+    Connect-MsolService -Credential $UserCredential
+}
+Catch{
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -AllowRedirection
+    Connect-MsolService -Credential $UserCredential
+    Import-PSSession $Session -AllowClobber
+}
 	
 }
 
