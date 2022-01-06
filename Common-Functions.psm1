@@ -60,7 +60,7 @@ If($PSVersionCheck -ge 5){
 #Connect-MsolService fails unless PS version is >= 5. Exchange cmdlets will be available but not MS Online
 Try{
     Connect-ExchangeOnline -ShowProgress $true -ErrorAction Stop
-    Connect-MsolService -Credential $UserCredential
+    Connect-MsolService
 }
 Catch{
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -AllowRedirection
